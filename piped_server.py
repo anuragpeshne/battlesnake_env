@@ -7,7 +7,8 @@ from flask import Flask
 from flask import request
 
 app = Flask(__name__)
-q = None
+in_q = None
+out_q = None
 
 @app.get("/")
 def handle_info():
@@ -33,6 +34,7 @@ def handle_start():
     request.json contains information about the game that's about to be played.
     """
     data = request.get_json()
+    out_q.put(data)
 
     print(data)
     print(f"{data['game']['id']} START")
@@ -45,10 +47,13 @@ def handle_move():
     Return a move from ["up", "down", "left" or "right"].
     """
     data = request.get_json()
+    out_q.put(data)
 
     print(data)
     possible_moves = ["up", "down", "left" or "right"]
-    move = random.choice(possible_moves)
+    random_move = random.choice(possible_moves)
+
+    move = __get_from_q(in_q, random_move)
 
     return {"move": move}
 
@@ -60,11 +65,12 @@ def end():
     It's purely for informational purposes, you don't have to make any decisions here.
     """
     data = request.get_json()
+    out_q.put(data)
 
     print(f"{data['game']['id']} END")
     return "ok"
 
-def __get_from_q(default_value):
+def __get_from_q(q, default_value):
     try:
         return q.get(True, 500 / 1000)
     except queue.Empty:
@@ -72,6 +78,7 @@ def __get_from_q(default_value):
 
 if __name__ == "__main__":
     print("Starting Battlesnake Server...")
-    q = queue.Queue()
+    in_q = queue.Queue()
+    out_q = queue.Queue()
     port = int(os.environ.get("PORT", "8080"))
     app.run(host="0.0.0.0", port=port, debug=True)
