@@ -4,7 +4,7 @@ import queue
 import time
 
 from os.path import expanduser
-from subprocess import Popen
+from subprocess import Popen, DEVNULL
 
 import piped_server
 
@@ -12,7 +12,7 @@ BATTLESNAKE_EXE = expanduser("~") + "/go/bin/battlesnake"
 WORLD_W = 11
 WORLD_H = 11
 SNAKE_NAME = "Test"
-SNAKE_URL = "http://127.0.0.1:8080"
+SNAKE_URL = "http://localhost:8080"
 MOVE_TIMEOUT = 1000
 
 server_pipe_in = queue.Queue()
@@ -35,7 +35,7 @@ def start(train_mode):
     global battlesnake_process
     global piped_server_started
 
-    delay = 100
+    delay = 0
     if train_mode:
         delay = 1000
 
@@ -44,9 +44,9 @@ def start(train_mode):
         piped_server_started = True
         
         # TODO poll /
-        time.sleep(2)
+        time.sleep(0.01)
     
-    battlesnake_process = Popen([
+    cmdline = [
         BATTLESNAKE_EXE,
         "play",
         "--delay", str(delay),
@@ -56,7 +56,10 @@ def start(train_mode):
         "--timeout", str(MOVE_TIMEOUT),
         "--name", SNAKE_NAME,
         "--url", SNAKE_URL,
-    ])
+    ]
+    battlesnake_process = Popen(
+        cmdline,
+        stderr=DEVNULL)
 
     _ = server_pipe_out.get(True, 500 / 1000)
     endpoint, start_state_out = server_pipe_out.get(True, 500 / 1000)
@@ -65,7 +68,10 @@ def start(train_mode):
 
 def step(action):
     server_pipe_in.put(action)
-    endpoint, output_data = server_pipe_out.get(True, 500 / 1000)
+    try:
+        endpoint, output_data = server_pipe_out.get(True, 500 / 1000)
+    except queue.Empty:
+        endpoint, output_data = ("dead", None)
     next_state, reward, done = parse_server_out(endpoint, output_data)
     return (next_state, reward, done)
 
@@ -86,8 +92,12 @@ def parse_server_out(endpoint, out_data):
         done = False
         reward = 0
         next_state = out_data
+    elif endpoint == "dead":
+        done = True
+        reward = -1
+        next_state = out_data
     else:
         done = True
-        reward = 0
+        reward = 1
         next_state = out_data
     return (next_state, reward, done)

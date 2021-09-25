@@ -2,6 +2,7 @@
 
 import os
 import queue
+import logging
 import random
 import threading
 
@@ -11,6 +12,9 @@ from flask import request
 app = Flask(__name__)
 in_q = None
 out_q = None
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 @app.get("/")
 def handle_info():
@@ -64,7 +68,6 @@ def handle_move():
 
     return {"move": move}
 
-
 @app.post("/end")
 def handle_end():
     """
@@ -95,7 +98,9 @@ if __name__ == "__main__":
 def start_server(in_q_param, out_q_param, port_param="8080"):
     reset_q(in_q_param, out_q_param)
     port = int(os.environ.get("PORT", port_param))
-    threading.Thread(target=lambda: app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)).start()
+    threading.Thread(
+        target=lambda: app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False),
+        daemon=True).start()
 
 def reset_q(in_q_param, out_q_param):
     global in_q
