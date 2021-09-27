@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import queue
 import logging
 import random
 import threading
@@ -56,16 +55,13 @@ def handle_move():
     """
     global in_q
     global out_q
-    
+
     data = request.get_json()
-    out_q.put(("move", data))
+    res = out_q.put(("move", data))
 
-    #print(data)
-    possible_moves = ["up", "down", "left" or "right"]
-    random_move = random.choice(possible_moves)
-
-    move = __get_from_q(in_q, random_move)
-
+    #print("MOVE", data)
+    move = in_q.get()
+    #move = "right"
     return {"move": move}
 
 @app.post("/end")
@@ -82,29 +78,29 @@ def handle_end():
     #print(f"{data['game']['id']} END")
     return "ok"
 
-def __get_from_q(q, default_value):
-    try:
-        return q.get(True, 500 / 1000)
-    except queue.Empty:
-        return default_value
-
-if __name__ == "__main__":
-    #print("Starting Battlesnake Server...")
-    in_q = queue.Queue()
-    out_q = queue.Queue()
-    port = int(os.environ.get("PORT", "8080"))
-    app.run(host="0.0.0.0", port=port, debug=True)
-
 def start_server(in_q_param, out_q_param, port_param="8080"):
-    reset_q(in_q_param, out_q_param)
+    global in_q
+    global out_q
+
+    in_q = in_q_param
+    out_q = out_q_param
     port = int(os.environ.get("PORT", port_param))
     threading.Thread(
         target=lambda: app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False),
         daemon=True).start()
 
-def reset_q(in_q_param, out_q_param):
+def reset_q():
     global in_q
     global out_q
-    
-    in_q = in_q_param
-    out_q = out_q_param
+
+    # HACK: put many items in the queue so that pending gets are satisfied
+    for i in range(10):
+        in_q.put("up")
+        out_q.put(("dummy", None))
+
+    with in_q.mutex:
+        in_q.queue.clear()
+
+    with out_q.mutex:
+        out_q.queue.clear()
+    print("reset done")
