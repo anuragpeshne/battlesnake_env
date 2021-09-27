@@ -8,8 +8,8 @@ def agent_get_action():
     possible_moves = ["up", "down", "right", "left"]
     return random.choice(possible_moves)
 
-#initial_state = env.reset(train_mode=True)
-for i_episode in range(1):
+initial_state = env.reset(train_mode=True)
+for i_episode in range(3):
     print(i_episode)
     done = False
     initial_state = env.reset(train_mode=True)

@@ -31,7 +31,10 @@ def reset(train_mode=False):
 
     # clean old stuff
     if battlesnake_process is not None:
-        battlesnake_process.kill()
+        if battlesnake_process.poll() is None:
+            battlesnake_process.kill()
+            battlesnake_process.wait()
+        assert battlesnake_process.poll() is not None
         battlesnake_process = None
 
     if not server_started:
@@ -40,7 +43,7 @@ def reset(train_mode=False):
         poll_server()
     else:
         #print("reset")
-        #piped_server.reset_q()
+        piped_server.reset_q()
         time.sleep(0.1)
         #print("q clear")
 
@@ -72,7 +75,7 @@ def step(action):
 
     server_pipe_in.put(action)
     try:
-        endpoint, output_data = server_pipe_out.get(True, 500 / 1000)
+        endpoint, output_data = server_pipe_out.get(True, 200 / 1000)
     except Empty:
         endpoint, output_data = ("dead", None)
     next_state, reward, done = parse_server_out(endpoint, output_data)

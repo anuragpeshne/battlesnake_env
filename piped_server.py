@@ -39,7 +39,7 @@ def handle_start():
     request.json contains information about the game that's about to be played.
     """
     global out_q
-    
+
     #print("server start")
     data = request.get_json()
     out_q.put(('start', data))
@@ -61,7 +61,6 @@ def handle_move():
 
     #print("MOVE", data)
     move = in_q.get()
-    #move = "right"
     return {"move": move}
 
 @app.post("/end")
@@ -93,14 +92,10 @@ def reset_q():
     global in_q
     global out_q
 
-    # HACK: put many items in the queue so that pending gets are satisfied
-    for i in range(10):
-        in_q.put("up")
-        out_q.put(("dummy", None))
+    while not in_q.empty():
+        in_q.get()
+    assert in_q.empty()
 
-    with in_q.mutex:
-        in_q.queue.clear()
-
-    with out_q.mutex:
-        out_q.queue.clear()
-    print("reset done")
+    while not out_q.empty():
+        out_q.get()
+    assert out_q.empty()
