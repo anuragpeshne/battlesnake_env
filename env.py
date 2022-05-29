@@ -49,6 +49,7 @@ def start(train_mode):
     cmdline = [
         BATTLESNAKE_EXE,
         "play",
+        "--sequential",
         "--delay", str(delay),
         "--gametype", "solo", # "standard",
         "--height", str(WORLD_H),

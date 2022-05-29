@@ -61,7 +61,7 @@ def handle_move():
     out_q.put(("move", data))
 
     #print(data)
-    possible_moves = ["up", "down", "left" or "right"]
+    possible_moves = ["up", "down", "left", "right"]
     random_move = random.choice(possible_moves)
 
     move = __get_from_q(in_q, random_move)
