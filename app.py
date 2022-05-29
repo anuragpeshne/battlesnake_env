@@ -11,7 +11,7 @@ def agent_get_action(state):
 for i_episode in range(10):
     print("Episode:", i_episode)
     done = False
-    initial_state = env.reset(train_mode=False)
+    initial_state = env.reset(train_mode=True)
     score = 0
     t = 0
 
