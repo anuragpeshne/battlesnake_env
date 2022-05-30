@@ -60,7 +60,7 @@ def handle_move():
     res = out_q.put(("move", data))
 
     #print("MOVE", data)
-    move = in_q.get()
+    move = in_q.get(True, timeout=500 / 1000)
     return {"move": move}
 
 @app.post("/end")
