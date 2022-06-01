@@ -46,7 +46,6 @@ def reset(train_mode=False):
     else:
         #print("reset")
         piped_server.reset_q()
-        time.sleep(0.5)
         #print("q clear")
 
     delay = 0

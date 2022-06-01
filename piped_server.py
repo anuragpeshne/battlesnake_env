@@ -5,6 +5,7 @@ import logging
 import random
 import threading
 
+from queue import Empty
 from flask import Flask
 from flask import request
 
@@ -92,10 +93,19 @@ def reset_q():
     global in_q
     global out_q
 
-    while not in_q.empty():
-        in_q.get()
+    # there might be someone waiting for data,
+    # insert dummy data to unblock them
+    in_q.put("dummy")
+    out_q.put("dummy")
+    empty_q(in_q)
     assert in_q.empty()
 
-    while not out_q.empty():
-        out_q.get()
+    empty_q(out_q)
     assert out_q.empty()
+
+def empty_q(q):
+    while True:
+        try:
+            item = q.get_nowait()
+        except Empty:
+            break
