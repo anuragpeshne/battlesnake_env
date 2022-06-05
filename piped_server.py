@@ -3,11 +3,12 @@
 import os
 import logging
 import random
-import threading
+import click
 
 from queue import Empty
 from flask import Flask
 from flask import request
+from multiprocessing import Process
 
 app = Flask(__name__)
 in_q = None
@@ -15,6 +16,16 @@ out_q = None
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
+log.disabled = True
+
+def secho(text, file=None, nl=None, err=None, color=None, **styles):
+    pass
+
+def echo(text, file=None, nl=None, err=None, color=None, **styles):
+    pass
+
+click.echo = echo
+click.secho = secho
 
 @app.get("/")
 def handle_info():
@@ -79,33 +90,15 @@ def handle_end():
     return "ok"
 
 def start_server(in_q_param, out_q_param, port_param="8080"):
+    server_proc = Process(target=start_server_func, args=(in_q_param, out_q_param, port_param))
+    #server_proc.start()
+    return server_proc
+
+def start_server_func(in_q_param, out_q_param, port_param):
     global in_q
     global out_q
 
     in_q = in_q_param
     out_q = out_q_param
     port = int(os.environ.get("PORT", port_param))
-    threading.Thread(
-        target=lambda: app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False),
-        daemon=True).start()
-
-def reset_q():
-    global in_q
-    global out_q
-
-    # there might be someone waiting for data,
-    # insert dummy data to unblock them
-    in_q.put("dummy")
-    out_q.put("dummy")
-    empty_q(in_q)
-    assert in_q.empty()
-
-    empty_q(out_q)
-    assert out_q.empty()
-
-def empty_q(q):
-    while True:
-        try:
-            item = q.get_nowait()
-        except Empty:
-            break
+    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
