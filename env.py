@@ -12,8 +12,6 @@ from . import piped_server
 #import piped_server
 
 BATTLESNAKE_EXE = expanduser("~") + "/go/bin/battlesnake"
-WORLD_W = 11
-WORLD_H = 11
 SNAKE_NAME = "Test"
 SNAKE_URL = "http://localhost:8080"
 MOVE_TIMEOUT = int(10e5)  # to enable explorative development using notebooks
@@ -23,7 +21,7 @@ server_pipe_out = Queue()
 battlesnake_process = None
 server_started = False
 
-def reset(train_mode=False):
+def reset(world_w=11, world_h=11, train_mode=False):
     global battlesnake_process
     global server_started
     global server_pipe_in
@@ -57,8 +55,8 @@ def reset(train_mode=False):
         "--sequential",
         "--delay", str(delay),
         "--gametype", "solo", # "standard",
-        "--height", str(WORLD_H),
-        "--width", str(WORLD_W),
+        "--height", str(world_h),
+        "--width", str(world_w),
         "--timeout", str(MOVE_TIMEOUT),
         "--name", SNAKE_NAME,
         "--url", SNAKE_URL,]
