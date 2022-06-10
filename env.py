@@ -27,6 +27,7 @@ class Env:
 
     def reset(self, world_w=11, world_h=11, train_mode=False):
         # clean old stuff
+        print("resetting...")
         if self.battlesnake_process is not None:
             if self.battlesnake_process.poll() is None:
                 self.battlesnake_process.kill()
@@ -72,6 +73,7 @@ class Env:
         # input, so discard the first piped input
         endpoint, start_state_out = self.server_pipe_out.get(True, timeout=500 / 1000)
         next_state, reward, done = self.parse_server_out(endpoint, start_state_out)
+        print("resetting...done")
         return (next_state, reward, done)
 
     def step(self, action):
@@ -106,7 +108,7 @@ class Env:
 
     def poll_server(self):
         success = False
-        for timeperiod in [0.001, 0.01, 0.05, 0.1, 0.5, 1, 5]:
+        for timeperiod in [0.001, 0.01, 0.05, 0.1, 0.5, 1, 5, 10, 30]:
             try:
                 res = requests.get("http://localhost:" + PIPED_SERVER_PORT)
                 success = True
@@ -115,4 +117,4 @@ class Env:
                 time.sleep(timeperiod)
 
         if not success:
-            raise "Polling failed"
+            raise Exception("Polling failed")
