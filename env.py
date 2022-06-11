@@ -27,7 +27,7 @@ class Env:
 
     def reset(self, world_w=11, world_h=11, train_mode=False):
         # clean old stuff
-        print("resetting...")
+        #print("resetting...w: %s h: %s" % (world_w, world_h))
         if self.battlesnake_process is not None:
             if self.battlesnake_process.poll() is None:
                 self.battlesnake_process.kill()
