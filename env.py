@@ -73,7 +73,6 @@ class Env:
         # input, so discard the first piped input
         endpoint, start_state_out = self.server_pipe_out.get(True, timeout=500 / 1000)
         next_state, reward, done = self.parse_server_out(endpoint, start_state_out)
-        print("resetting...done")
         return (next_state, reward, done)
 
     def step(self, action):
